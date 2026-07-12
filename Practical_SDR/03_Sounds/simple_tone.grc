@@ -33,6 +33,27 @@ options:
     state: enabled
 
 blocks:
+- name: freq
+  id: variable_qtgui_range
+  parameters:
+    comment: ''
+    gui_hint: ''
+    label: ''
+    min_len: '200'
+    orient: QtCore.Qt.Horizontal
+    rangeType: float
+    start: '100'
+    step: '100'
+    stop: '32000'
+    value: '500'
+    widget: counter_slider
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [312, 4.0]
+    rotation: 0
+    state: true
 - name: samp_rate
   id: variable
   parameters:
@@ -52,7 +73,7 @@ blocks:
     alias: ''
     amp: '0.1'
     comment: ''
-    freq: '500'
+    freq: freq
     maxoutbuf: '0'
     minoutbuf: '0'
     offset: '0'
@@ -82,7 +103,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [344, 204.0]
+    coordinate: [352, 284.0]
     rotation: 0
     state: true
 - name: qtgui_time_sink_x_0
@@ -179,7 +200,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [336, 108.0]
+    coordinate: [328, 164.0]
     rotation: 0
     state: true
 
