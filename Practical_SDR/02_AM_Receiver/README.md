@@ -1,0 +1,3 @@
+# In case there is issue with audio playbacl on WSL2
+
+TODO ....
