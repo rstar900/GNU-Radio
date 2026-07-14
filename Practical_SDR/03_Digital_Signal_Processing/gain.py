@@ -12,6 +12,7 @@
 
 from PyQt5 import Qt
 from gnuradio import qtgui
+from PyQt5 import QtCore
 from gnuradio import analog
 from gnuradio import audio
 from gnuradio import blocks
@@ -66,11 +67,15 @@ class gain(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = 32000
+        self.gain_val = gain_val = 1
 
         ##################################################
         # Blocks
         ##################################################
 
+        self._gain_val_range = qtgui.Range(0.1, 10, 0.1, 1, 200)
+        self._gain_val_win = qtgui.RangeWidget(self._gain_val_range, self.set_gain_val, "'gain_val'", "counter_slider", float, QtCore.Qt.Horizontal)
+        self.top_layout.addWidget(self._gain_val_win)
         self.qtgui_time_sink_x_0_0 = qtgui.time_sink_f(
             1024, #size
             samp_rate, #samp_rate
@@ -167,7 +172,7 @@ class gain(gr.top_block, Qt.QWidget):
 
         self._qtgui_time_sink_x_0_win = sip.wrapinstance(self.qtgui_time_sink_x_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_time_sink_x_0_win)
-        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(1)
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(gain_val)
         self.audio_sink_0 = audio.sink(samp_rate, '', True)
         self.analog_sig_source_x_0 = analog.sig_source_f(samp_rate, analog.GR_COS_WAVE, 1000, 0.01, 0, 0)
 
@@ -197,6 +202,13 @@ class gain(gr.top_block, Qt.QWidget):
         self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
         self.qtgui_time_sink_x_0.set_samp_rate(self.samp_rate)
         self.qtgui_time_sink_x_0_0.set_samp_rate(self.samp_rate)
+
+    def get_gain_val(self):
+        return self.gain_val
+
+    def set_gain_val(self, gain_val):
+        self.gain_val = gain_val
+        self.blocks_multiply_const_vxx_0.set_k(self.gain_val)
 
 
 
