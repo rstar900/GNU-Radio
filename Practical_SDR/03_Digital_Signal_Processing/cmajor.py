@@ -179,9 +179,9 @@ class cmajor(gr.top_block, Qt.QWidget):
 
         self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
-        self.low_pass_filter_0 = filter.fir_filter_fff(
+        self.high_pass_filter_0 = filter.fir_filter_fff(
             1,
-            firdes.low_pass(
+            firdes.high_pass(
                 1,
                 samp_rate,
                 cutoff,
@@ -201,10 +201,10 @@ class cmajor(gr.top_block, Qt.QWidget):
         self.connect((self.analog_sig_source_x_0, 0), (self.blocks_add_xx_0, 0))
         self.connect((self.analog_sig_source_x_0_0, 0), (self.blocks_add_xx_0, 1))
         self.connect((self.analog_sig_source_x_0_1, 0), (self.blocks_add_xx_0, 2))
-        self.connect((self.blocks_add_xx_0, 0), (self.low_pass_filter_0, 0))
-        self.connect((self.low_pass_filter_0, 0), (self.audio_sink_0, 0))
-        self.connect((self.low_pass_filter_0, 0), (self.qtgui_freq_sink_x_0, 0))
-        self.connect((self.low_pass_filter_0, 0), (self.qtgui_time_sink_x_0, 0))
+        self.connect((self.blocks_add_xx_0, 0), (self.high_pass_filter_0, 0))
+        self.connect((self.high_pass_filter_0, 0), (self.audio_sink_0, 0))
+        self.connect((self.high_pass_filter_0, 0), (self.qtgui_freq_sink_x_0, 0))
+        self.connect((self.high_pass_filter_0, 0), (self.qtgui_time_sink_x_0, 0))
 
 
     def closeEvent(self, event):
@@ -221,7 +221,7 @@ class cmajor(gr.top_block, Qt.QWidget):
     def set_transition_width(self, transition_width):
         self.transition_width = transition_width
         Qt.QMetaObject.invokeMethod(self._transition_width_line_edit, "setText", Qt.Q_ARG("QString", str(self.transition_width)))
-        self.low_pass_filter_0.set_taps(firdes.low_pass(1, self.samp_rate, self.cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
+        self.high_pass_filter_0.set_taps(firdes.high_pass(1, self.samp_rate, self.cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
 
     def get_samp_rate(self):
         return self.samp_rate
@@ -231,7 +231,7 @@ class cmajor(gr.top_block, Qt.QWidget):
         self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
         self.analog_sig_source_x_0_0.set_sampling_freq(self.samp_rate)
         self.analog_sig_source_x_0_1.set_sampling_freq(self.samp_rate)
-        self.low_pass_filter_0.set_taps(firdes.low_pass(1, self.samp_rate, self.cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
+        self.high_pass_filter_0.set_taps(firdes.high_pass(1, self.samp_rate, self.cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
         self.qtgui_freq_sink_x_0.set_frequency_range(0, self.samp_rate)
         self.qtgui_time_sink_x_0.set_samp_rate(self.samp_rate)
 
@@ -241,7 +241,7 @@ class cmajor(gr.top_block, Qt.QWidget):
     def set_cutoff(self, cutoff):
         self.cutoff = cutoff
         Qt.QMetaObject.invokeMethod(self._cutoff_line_edit, "setText", Qt.Q_ARG("QString", eng_notation.num_to_str(self.cutoff)))
-        self.low_pass_filter_0.set_taps(firdes.low_pass(1, self.samp_rate, self.cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
+        self.high_pass_filter_0.set_taps(firdes.high_pass(1, self.samp_rate, self.cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
 
 
 
