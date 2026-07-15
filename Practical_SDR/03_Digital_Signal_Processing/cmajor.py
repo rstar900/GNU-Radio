@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0
 #
 # GNU Radio Python Flow Graph
-# Title: C Major tone (Low Pass Filter)
+# Title: C Major tone (High Pass Filter)
 # Author: Rachit Garg
 # Description: Filter out frequencies from C Major tone.
 # GNU Radio version: 3.10.7.0
@@ -33,9 +33,9 @@ import sip
 class cmajor(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "C Major tone (Low Pass Filter)", catch_exceptions=True)
+        gr.top_block.__init__(self, "C Major tone (High Pass Filter)", catch_exceptions=True)
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("C Major tone (Low Pass Filter)")
+        self.setWindowTitle("C Major tone (High Pass Filter)")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -68,7 +68,8 @@ class cmajor(gr.top_block, Qt.QWidget):
         ##################################################
         self.transition_width = transition_width = 100
         self.samp_rate = samp_rate = 32000
-        self.cutoff = cutoff = 10e3
+        self.low_cutoff = low_cutoff = 200
+        self.high_cutoff = high_cutoff = 10e3
 
         ##################################################
         # Blocks
@@ -81,13 +82,20 @@ class cmajor(gr.top_block, Qt.QWidget):
         self._transition_width_line_edit.returnPressed.connect(
             lambda: self.set_transition_width(int(str(self._transition_width_line_edit.text()))))
         self.top_layout.addWidget(self._transition_width_tool_bar)
-        self._cutoff_tool_bar = Qt.QToolBar(self)
-        self._cutoff_tool_bar.addWidget(Qt.QLabel("'cutoff'" + ": "))
-        self._cutoff_line_edit = Qt.QLineEdit(str(self.cutoff))
-        self._cutoff_tool_bar.addWidget(self._cutoff_line_edit)
-        self._cutoff_line_edit.returnPressed.connect(
-            lambda: self.set_cutoff(eng_notation.str_to_num(str(self._cutoff_line_edit.text()))))
-        self.top_layout.addWidget(self._cutoff_tool_bar)
+        self._low_cutoff_tool_bar = Qt.QToolBar(self)
+        self._low_cutoff_tool_bar.addWidget(Qt.QLabel("'low_cutoff'" + ": "))
+        self._low_cutoff_line_edit = Qt.QLineEdit(str(self.low_cutoff))
+        self._low_cutoff_tool_bar.addWidget(self._low_cutoff_line_edit)
+        self._low_cutoff_line_edit.returnPressed.connect(
+            lambda: self.set_low_cutoff(eng_notation.str_to_num(str(self._low_cutoff_line_edit.text()))))
+        self.top_layout.addWidget(self._low_cutoff_tool_bar)
+        self._high_cutoff_tool_bar = Qt.QToolBar(self)
+        self._high_cutoff_tool_bar.addWidget(Qt.QLabel("'high_cutoff'" + ": "))
+        self._high_cutoff_line_edit = Qt.QLineEdit(str(self.high_cutoff))
+        self._high_cutoff_tool_bar.addWidget(self._high_cutoff_line_edit)
+        self._high_cutoff_line_edit.returnPressed.connect(
+            lambda: self.set_high_cutoff(eng_notation.str_to_num(str(self._high_cutoff_line_edit.text()))))
+        self.top_layout.addWidget(self._high_cutoff_tool_bar)
         self.qtgui_time_sink_x_0 = qtgui.time_sink_f(
             1024, #size
             samp_rate, #samp_rate
@@ -179,16 +187,17 @@ class cmajor(gr.top_block, Qt.QWidget):
 
         self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
-        self.high_pass_filter_0 = filter.fir_filter_fff(
+        self.blocks_add_xx_0 = blocks.add_vff(1)
+        self.band_pass_filter_0 = filter.fir_filter_fff(
             1,
-            firdes.high_pass(
+            firdes.band_pass(
                 1,
                 samp_rate,
-                cutoff,
+                low_cutoff,
+                high_cutoff,
                 transition_width,
                 window.WIN_HAMMING,
                 6.76))
-        self.blocks_add_xx_0 = blocks.add_vff(1)
         self.audio_sink_0 = audio.sink(samp_rate, '', True)
         self.analog_sig_source_x_0_1 = analog.sig_source_f(samp_rate, analog.GR_COS_WAVE, 1568, 0.1, 0, 0)
         self.analog_sig_source_x_0_0 = analog.sig_source_f(samp_rate, analog.GR_COS_WAVE, 1318.5, 0.1, 0, 0)
@@ -201,10 +210,10 @@ class cmajor(gr.top_block, Qt.QWidget):
         self.connect((self.analog_sig_source_x_0, 0), (self.blocks_add_xx_0, 0))
         self.connect((self.analog_sig_source_x_0_0, 0), (self.blocks_add_xx_0, 1))
         self.connect((self.analog_sig_source_x_0_1, 0), (self.blocks_add_xx_0, 2))
-        self.connect((self.blocks_add_xx_0, 0), (self.high_pass_filter_0, 0))
-        self.connect((self.high_pass_filter_0, 0), (self.audio_sink_0, 0))
-        self.connect((self.high_pass_filter_0, 0), (self.qtgui_freq_sink_x_0, 0))
-        self.connect((self.high_pass_filter_0, 0), (self.qtgui_time_sink_x_0, 0))
+        self.connect((self.band_pass_filter_0, 0), (self.audio_sink_0, 0))
+        self.connect((self.band_pass_filter_0, 0), (self.qtgui_freq_sink_x_0, 0))
+        self.connect((self.band_pass_filter_0, 0), (self.qtgui_time_sink_x_0, 0))
+        self.connect((self.blocks_add_xx_0, 0), (self.band_pass_filter_0, 0))
 
 
     def closeEvent(self, event):
@@ -221,7 +230,7 @@ class cmajor(gr.top_block, Qt.QWidget):
     def set_transition_width(self, transition_width):
         self.transition_width = transition_width
         Qt.QMetaObject.invokeMethod(self._transition_width_line_edit, "setText", Qt.Q_ARG("QString", str(self.transition_width)))
-        self.high_pass_filter_0.set_taps(firdes.high_pass(1, self.samp_rate, self.cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
+        self.band_pass_filter_0.set_taps(firdes.band_pass(1, self.samp_rate, self.low_cutoff, self.high_cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
 
     def get_samp_rate(self):
         return self.samp_rate
@@ -231,17 +240,25 @@ class cmajor(gr.top_block, Qt.QWidget):
         self.analog_sig_source_x_0.set_sampling_freq(self.samp_rate)
         self.analog_sig_source_x_0_0.set_sampling_freq(self.samp_rate)
         self.analog_sig_source_x_0_1.set_sampling_freq(self.samp_rate)
-        self.high_pass_filter_0.set_taps(firdes.high_pass(1, self.samp_rate, self.cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
+        self.band_pass_filter_0.set_taps(firdes.band_pass(1, self.samp_rate, self.low_cutoff, self.high_cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
         self.qtgui_freq_sink_x_0.set_frequency_range(0, self.samp_rate)
         self.qtgui_time_sink_x_0.set_samp_rate(self.samp_rate)
 
-    def get_cutoff(self):
-        return self.cutoff
+    def get_low_cutoff(self):
+        return self.low_cutoff
 
-    def set_cutoff(self, cutoff):
-        self.cutoff = cutoff
-        Qt.QMetaObject.invokeMethod(self._cutoff_line_edit, "setText", Qt.Q_ARG("QString", eng_notation.num_to_str(self.cutoff)))
-        self.high_pass_filter_0.set_taps(firdes.high_pass(1, self.samp_rate, self.cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
+    def set_low_cutoff(self, low_cutoff):
+        self.low_cutoff = low_cutoff
+        Qt.QMetaObject.invokeMethod(self._low_cutoff_line_edit, "setText", Qt.Q_ARG("QString", eng_notation.num_to_str(self.low_cutoff)))
+        self.band_pass_filter_0.set_taps(firdes.band_pass(1, self.samp_rate, self.low_cutoff, self.high_cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
+
+    def get_high_cutoff(self):
+        return self.high_cutoff
+
+    def set_high_cutoff(self, high_cutoff):
+        self.high_cutoff = high_cutoff
+        Qt.QMetaObject.invokeMethod(self._high_cutoff_line_edit, "setText", Qt.Q_ARG("QString", eng_notation.num_to_str(self.high_cutoff)))
+        self.band_pass_filter_0.set_taps(firdes.band_pass(1, self.samp_rate, self.low_cutoff, self.high_cutoff, self.transition_width, window.WIN_HAMMING, 6.76))
 
 
 
