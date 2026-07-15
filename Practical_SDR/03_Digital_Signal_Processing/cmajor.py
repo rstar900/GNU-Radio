@@ -66,7 +66,7 @@ class cmajor(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.transition_width = transition_width = 1000
+        self.transition_width = transition_width = 100
         self.samp_rate = samp_rate = 32000
         self.cutoff = cutoff = 10e3
 
