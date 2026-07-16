@@ -5,9 +5,9 @@
 # SPDX-License-Identifier: GPL-3.0
 #
 # GNU Radio Python Flow Graph
-# Title: Voice FFT
+# Title: Equalizer
 # Author: Rachit Garg
-# Description: Visualize FFT of a voice WAV file
+# Description: Equalizer for adjusting gains of voice WAV file
 # GNU Radio version: 3.10.7.0
 
 from packaging.version import Version as StrictVersion
@@ -15,8 +15,9 @@ from PyQt5 import Qt
 from gnuradio import qtgui
 from gnuradio import audio
 from gnuradio import blocks
-from gnuradio import gr
+from gnuradio import filter
 from gnuradio.filter import firdes
+from gnuradio import gr
 from gnuradio.fft import window
 import sys
 import signal
@@ -24,16 +25,18 @@ from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
+from gnuradio.qtgui import Range, RangeWidget
+from PyQt5 import QtCore
 import sip
 
 
 
-class cmajor(gr.top_block, Qt.QWidget):
+class equalizer(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Voice FFT", catch_exceptions=True)
+        gr.top_block.__init__(self, "Equalizer", catch_exceptions=True)
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("Voice FFT")
+        self.setWindowTitle("Equalizer")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -51,7 +54,7 @@ class cmajor(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "cmajor")
+        self.settings = Qt.QSettings("GNU Radio", "equalizer")
 
         try:
             if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
@@ -65,11 +68,35 @@ class cmajor(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.samp_rate = samp_rate = 32000
+        self.gain_mid = gain_mid = 0.5
+        self.gain_low = gain_low = 0.5
+        self.gain_high = gain_high = 0.5
 
         ##################################################
         # Blocks
         ##################################################
 
+        self._gain_mid_range = Range(0, 1, 0.1, 0.5, 200)
+        self._gain_mid_win = RangeWidget(self._gain_mid_range, self.set_gain_mid, "Midrange", "counter_slider", float, QtCore.Qt.Horizontal)
+        self.top_grid_layout.addWidget(self._gain_mid_win, 1, 0, 1, 1)
+        for r in range(1, 2):
+            self.top_grid_layout.setRowStretch(r, 1)
+        for c in range(0, 1):
+            self.top_grid_layout.setColumnStretch(c, 1)
+        self._gain_low_range = Range(0, 1, 0.1, 0.5, 200)
+        self._gain_low_win = RangeWidget(self._gain_low_range, self.set_gain_low, "Bass", "counter_slider", float, QtCore.Qt.Horizontal)
+        self.top_grid_layout.addWidget(self._gain_low_win, 0, 0, 1, 1)
+        for r in range(0, 1):
+            self.top_grid_layout.setRowStretch(r, 1)
+        for c in range(0, 1):
+            self.top_grid_layout.setColumnStretch(c, 1)
+        self._gain_high_range = Range(0, 1, 0.1, 0.5, 200)
+        self._gain_high_win = RangeWidget(self._gain_high_range, self.set_gain_high, "Treble", "counter_slider", float, QtCore.Qt.Horizontal)
+        self.top_grid_layout.addWidget(self._gain_high_win, 2, 0, 1, 1)
+        for r in range(2, 3):
+            self.top_grid_layout.setRowStretch(r, 1)
+        for c in range(0, 1):
+            self.top_grid_layout.setColumnStretch(c, 1)
         self.qtgui_time_sink_x_0 = qtgui.time_sink_f(
             1024, #size
             samp_rate, #samp_rate
@@ -162,19 +189,56 @@ class cmajor(gr.top_block, Qt.QWidget):
         self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
         self.blocks_wavfile_source_0 = blocks.wavfile_source('/home/rstar900/Practical_SDR/getting_started_sdr-main/getting_started_sdr-main/ch_05/HumanEvents_s32k.wav', True)
+        self.blocks_add_xx_0 = blocks.add_vff(1)
+        self.band_pass_filter_2 = filter.fir_filter_fff(
+            1,
+            firdes.band_pass(
+                gain_high,
+                samp_rate,
+                2600,
+                10000,
+                10,
+                window.WIN_HAMMING,
+                6.76))
+        self.band_pass_filter_1 = filter.fir_filter_fff(
+            1,
+            firdes.band_pass(
+                gain_mid,
+                samp_rate,
+                400,
+                2600,
+                10,
+                window.WIN_HAMMING,
+                6.76))
+        self.band_pass_filter_0 = filter.fir_filter_fff(
+            1,
+            firdes.band_pass(
+                gain_low,
+                samp_rate,
+                20,
+                400,
+                10,
+                window.WIN_HAMMING,
+                6.76))
         self.audio_sink_0 = audio.sink(samp_rate, '', True)
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_wavfile_source_0, 0), (self.audio_sink_0, 0))
-        self.connect((self.blocks_wavfile_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
-        self.connect((self.blocks_wavfile_source_0, 0), (self.qtgui_time_sink_x_0, 0))
+        self.connect((self.band_pass_filter_0, 0), (self.blocks_add_xx_0, 0))
+        self.connect((self.band_pass_filter_1, 0), (self.blocks_add_xx_0, 1))
+        self.connect((self.band_pass_filter_2, 0), (self.blocks_add_xx_0, 2))
+        self.connect((self.blocks_add_xx_0, 0), (self.audio_sink_0, 0))
+        self.connect((self.blocks_add_xx_0, 0), (self.qtgui_freq_sink_x_0, 0))
+        self.connect((self.blocks_add_xx_0, 0), (self.qtgui_time_sink_x_0, 0))
+        self.connect((self.blocks_wavfile_source_0, 0), (self.band_pass_filter_0, 0))
+        self.connect((self.blocks_wavfile_source_0, 0), (self.band_pass_filter_1, 0))
+        self.connect((self.blocks_wavfile_source_0, 0), (self.band_pass_filter_2, 0))
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "cmajor")
+        self.settings = Qt.QSettings("GNU Radio", "equalizer")
         self.settings.setValue("geometry", self.saveGeometry())
         self.stop()
         self.wait()
@@ -186,13 +250,37 @@ class cmajor(gr.top_block, Qt.QWidget):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
+        self.band_pass_filter_0.set_taps(firdes.band_pass(self.gain_low, self.samp_rate, 20, 400, 10, window.WIN_HAMMING, 6.76))
+        self.band_pass_filter_1.set_taps(firdes.band_pass(self.gain_mid, self.samp_rate, 400, 2600, 10, window.WIN_HAMMING, 6.76))
+        self.band_pass_filter_2.set_taps(firdes.band_pass(self.gain_high, self.samp_rate, 2600, 10000, 10, window.WIN_HAMMING, 6.76))
         self.qtgui_freq_sink_x_0.set_frequency_range(0, self.samp_rate)
         self.qtgui_time_sink_x_0.set_samp_rate(self.samp_rate)
 
+    def get_gain_mid(self):
+        return self.gain_mid
+
+    def set_gain_mid(self, gain_mid):
+        self.gain_mid = gain_mid
+        self.band_pass_filter_1.set_taps(firdes.band_pass(self.gain_mid, self.samp_rate, 400, 2600, 10, window.WIN_HAMMING, 6.76))
+
+    def get_gain_low(self):
+        return self.gain_low
+
+    def set_gain_low(self, gain_low):
+        self.gain_low = gain_low
+        self.band_pass_filter_0.set_taps(firdes.band_pass(self.gain_low, self.samp_rate, 20, 400, 10, window.WIN_HAMMING, 6.76))
+
+    def get_gain_high(self):
+        return self.gain_high
+
+    def set_gain_high(self, gain_high):
+        self.gain_high = gain_high
+        self.band_pass_filter_2.set_taps(firdes.band_pass(self.gain_high, self.samp_rate, 2600, 10000, 10, window.WIN_HAMMING, 6.76))
 
 
 
-def main(top_block_cls=cmajor, options=None):
+
+def main(top_block_cls=equalizer, options=None):
 
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
         style = gr.prefs().get_string('qtgui', 'style', 'raster')
