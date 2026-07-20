@@ -77,7 +77,7 @@ class frequency_shifter(gr.top_block, Qt.QWidget):
         self._freq_line_edit = Qt.QLineEdit(str(self.freq))
         self._freq_tool_bar.addWidget(self._freq_line_edit)
         self._freq_line_edit.returnPressed.connect(
-            lambda: self.set_freq(int(str(self._freq_line_edit.text()))))
+            lambda: self.set_freq(eng_notation.str_to_num(str(self._freq_line_edit.text()))))
         self.top_layout.addWidget(self._freq_tool_bar)
         self.qtgui_freq_sink_x_0_0 = qtgui.freq_sink_c(
             1024, #size
@@ -203,7 +203,7 @@ class frequency_shifter(gr.top_block, Qt.QWidget):
 
     def set_freq(self, freq):
         self.freq = freq
-        Qt.QMetaObject.invokeMethod(self._freq_line_edit, "setText", Qt.Q_ARG("QString", str(self.freq)))
+        Qt.QMetaObject.invokeMethod(self._freq_line_edit, "setText", Qt.Q_ARG("QString", eng_notation.num_to_str(self.freq)))
         self.analog_sig_source_x_0.set_frequency(self.freq)
 
 

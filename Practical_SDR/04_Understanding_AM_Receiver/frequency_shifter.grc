@@ -39,7 +39,7 @@ blocks:
     comment: ''
     gui_hint: ''
     label: ''
-    type: int
+    type: real
     value: '0'
   states:
     bus_sink: false
