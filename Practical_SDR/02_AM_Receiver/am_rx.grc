@@ -55,7 +55,7 @@ blocks:
     gui_hint: ''
     label: ''
     type: real
-    value: 710e3
+    value: 880e3
   states:
     bus_sink: false
     bus_source: false
@@ -67,12 +67,12 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '32000'
+    value: '400000'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 12]
+    coordinate: [200, 12.0]
     rotation: 0
     state: enabled
 - name: analog_am_demod_cf_0
@@ -215,9 +215,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [976, 212.0]
+    coordinate: [984, 212.0]
     rotation: 0
-    state: true
+    state: enabled
 
 connections:
 - [analog_am_demod_cf_0, '0', rational_resampler_xxx_0, '0']

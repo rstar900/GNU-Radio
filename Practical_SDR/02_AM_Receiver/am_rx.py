@@ -66,8 +66,8 @@ class am_rx(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = 32000
-        self.freq = freq = 710e3
+        self.samp_rate = samp_rate = 400000
+        self.freq = freq = 880e3
         self.center_freq = center_freq = 900e3
 
         ##################################################
