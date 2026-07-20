@@ -6,7 +6,7 @@ options:
     cmake_opt: ''
     comment: ''
     copyright: ''
-    description: Receive Radio data from an IQ file, tune, do AM demod and play audio
+    description: Examine the input signal of the AM receiver
     gen_cmake: 'On'
     gen_linking: dynamic
     generate_options: qt_gui
@@ -22,7 +22,7 @@ options:
     run_options: prompt
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: AM Receiver
+    title: AM Receiver (Examine Input)
     window_size: (1000,1000)
   states:
     bus_sink: false
